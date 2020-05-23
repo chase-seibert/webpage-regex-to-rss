@@ -9,7 +9,8 @@ import html.parser
 
 def format_link(base_url, link):
     link = urllib.parse.urljoin(url, d['link'])
-    return html.unescape(link)
+    return link
+    # return html.unescape(link)
 
 
 def generate_rss(entries):
@@ -26,8 +27,7 @@ def generate_rss(entries):
 
     entries = ''.join([entry_template.format(**e) for e in entries])
 
-    return '''
-<?xml version="1.0" encoding="UTF-8"?>
+    return '''<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us">
     <title>TODO</title>
     <updated>TODO</updated>
