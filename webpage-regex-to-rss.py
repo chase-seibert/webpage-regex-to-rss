@@ -37,7 +37,8 @@ def generate_rss(entries, options):
         fe = fg.add_entry()
         fe.id(entry.get('link'))
         fe.title(entry.get('title'))
-        fe.link(href=entry.get('link'))
+        # TODO hack
+        fe.link(href=html.unescape(entry.get('link')))
         fe.published(entry.get('date'))
         # date, content
 
