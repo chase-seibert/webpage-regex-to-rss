@@ -25,10 +25,10 @@ FEEDS = {
     },
 }
 
-FEEDS['bogleheads11'] = FEEDS['bogleheads2']
+FEEDS['bogleheads11'] = FEEDS['bogleheads2'].copy()
 FEEDS['bogleheads11'].update({
     'source_url': 'https://www.bogleheads.org/forum/viewforum.php?f=11',
-    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/bogleheads2.xml',
+    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/bogleheads11.xml',
     'title': 'Bogleheads Personal Consumer Issues, topics with over 50 replies',
     's3': {
         'bucket': 'rsscombine',
