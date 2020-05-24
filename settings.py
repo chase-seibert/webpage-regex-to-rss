@@ -22,3 +22,13 @@ FEEDS = {
         }
     },
 }
+
+FEEDS['bogleheads11'] = FEEDS['bogleheads2']
+FEEDS['bogleheads11'].update({
+    'source_url': 'https://www.bogleheads.org/forum/viewforum.php?f=11',
+    'title': 'Bogleheads Personal Consumer Issues, topics with over 50 replies',
+    's3': {
+        'bucket': 'rsscombine',
+        'object_name': 'bogleheads11.xml',
+    }
+})
