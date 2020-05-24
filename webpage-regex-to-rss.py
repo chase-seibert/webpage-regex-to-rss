@@ -84,11 +84,9 @@ def print_entry(d):
 
 
 def upload_s3(xml_data, options):
-    contents = io.StringIO(xml_data)
     s3_client = boto3.client('s3')
-    contents_bytes = io.BytesIO(contents.getvalue().encode())
     response = s3_client.put_object(
-        Body=contents_bytes,
+        Body=xml_data,
         Bucket=options.get('bucket'),
         Key=options.get('object_name'),
         ContentType='text/xml',
