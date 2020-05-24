@@ -7,9 +7,12 @@ import re
 import urllib
 import html.parser
 import io
+import pytz
 
 from bs4 import BeautifulSoup
 import boto3
+from feedgen.feed import FeedGenerator
+import dateutil
 
 import settings
 
@@ -20,27 +23,25 @@ def format_link(base_url, link):
 
 
 def generate_rss(entries, options):
+    fg = FeedGenerator()
+    fg.id(options.get('id'))
+    fg.title(options.get('title'))
+    # fg.author( {'name':'John Doe','email':'john@example.de'} )
+    # fg.link( href='http://example.com', rel='alternate' )
+    # fg.logo('http://ex.com/logo.jpg')
+    # fg.subtitle('This is a cool feed!')
+    # fg.link( href='http://larskiesow.de/test.atom', rel='self' )
+    fg.language('en')
 
-    entry_template = '''
-    <entry>
-        <published>{date}</published>
-        <id>{link}</id>
-        <link href="{link}"/>
-        <title type="html"><![CDATA[{title}]]></title>
-        <content type="html" xml:base="{link}"><![CDATA[{content}]]></content>
-    </entry>
-'''
+    for entry in entries:
+        fe = fg.add_entry()
+        fe.id(entry.get('link'))
+        fe.title(entry.get('title'))
+        fe.link(href=entry.get('link'))
+        fe.published(entry.get('date'))
+        # date, content
 
-    entries = ''.join([entry_template.format(**e) for e in entries])
-
-    return '''<?xml version="1.0" encoding="UTF-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us">
-    <title>{title}</title>
-    <updated>TODO</updated>
-    <author><name><![CDATA[TODO]]></name></author>
-    {entries}
-</feed>
-'''.format(entries=entries, **options)
+    return fg.atom_str(pretty=True)
 
 
 def get_entries(_html, parse_options):
@@ -93,7 +94,6 @@ def upload_s3(xml_data, options):
         ContentType='text/xml',
         ACL='public-read',
     )
-    print('Success %r' % response)
 
 
 if __name__ == '__main__':
@@ -101,6 +101,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Scrape webpages to make an RSS feed using just regex')
     parser.add_argument('feed', help='Feed key in settings.py')
     parser.add_argument('--s3', dest='upload_s3', action='store_true', help='Upload to S3')
+    parser.add_argument('--debug', dest='debug', action='store_true')
     args = parser.parse_args()
     options = settings.FEEDS[args.feed]
 
@@ -113,13 +114,17 @@ if __name__ == '__main__':
         for entry in get_entries(_html, parse_options):
             d = parse_entry(entry, parse_options)
             d['link'] = format_link(source_url, d['link'])
+            d['date'] = dateutil.parser.parse(d['date'])
+            if options.get('timezone'):
+                d['date'] = d['date'].replace(tzinfo=pytz.timezone(options.get('timezone')))
             if exclude(d):
                 continue
             entries.append(d)
             print_entry(d)
 
     rss = generate_rss(entries, options)
-    # if args.debug:
-    #    print(rss)
+    if args.debug:
+        print(rss.decode())
     if args.upload_s3:
         upload_s3(rss, options.get('s3'))
+        print('Success %s' % options.get('id'))

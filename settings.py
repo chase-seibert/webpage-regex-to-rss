@@ -4,6 +4,7 @@ import re
 FEEDS = {
     'bogleheads2': {
         'source_url': 'https://www.bogleheads.org/forum/viewforum.php?f=2',
+        'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/bogleheads2.xml',
         'title': 'Bogleheads Personal Finance, topics with over 50 replies',
         'parse': {
             'entry': lambda x: x.find_all('li', class_='row'),
@@ -16,6 +17,7 @@ FEEDS = {
         },
         # exclude anything that doesn't have 50 or more replies
         'exclude': lambda d: int(d.get('replies') or 0) < 50,
+        'timezone': 'US/Central',
         's3': {
             'bucket': 'rsscombine',
             'object_name': 'bogleheads2.xml',
@@ -26,6 +28,7 @@ FEEDS = {
 FEEDS['bogleheads11'] = FEEDS['bogleheads2']
 FEEDS['bogleheads11'].update({
     'source_url': 'https://www.bogleheads.org/forum/viewforum.php?f=11',
+    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/bogleheads2.xml',
     'title': 'Bogleheads Personal Consumer Issues, topics with over 50 replies',
     's3': {
         'bucket': 'rsscombine',
