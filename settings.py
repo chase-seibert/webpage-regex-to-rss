@@ -16,5 +16,9 @@ FEEDS = {
         },
         # exclude anything that doesn't have 50 or more replies
         'exclude': lambda d: int(d.get('replies') or 0) < 50,
+        's3': {
+            'bucket': 'rsscombine',
+            'object_name': 'bogleheads2.xml',
+        }
     },
 }

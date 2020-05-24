@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
+import argparse
 import sys
 import urllib.request
 import re
 import urllib
 import html.parser
+import io
 
 from bs4 import BeautifulSoup
+import boto3
 
 import settings
 
@@ -73,19 +76,33 @@ def parse_entry(_html, parse_options):
 
 def print_entry(d):
     # print(d['title'])
-    # print(html.unescape(d['link']))
+    print(html.unescape(d['link']))
     # print('\t', d['date'])
     # print('\t', d['replies'])
     pass
 
 
+def upload_s3(xml_data, options):
+    contents = io.StringIO(xml_data)
+    s3_client = boto3.client('s3')
+    contents_bytes = io.BytesIO(contents.getvalue().encode())
+    response = s3_client.put_object(
+        Body=contents_bytes,
+        Bucket=options.get('bucket'),
+        Key=options.get('object_name'),
+        ContentType='text/xml',
+        ACL='public-read',
+    )
+    print('Success %r' % response)
+
+
 if __name__ == '__main__':
-    try:
-        feed_key = sys.argv[1]
-        options = settings.FEEDS[feed_key]
-    except IndexError:
-        print('Usage: ./webpage-regex-to-rss.py feed_key')
-        exit(1)
+
+    parser = argparse.ArgumentParser(description='Scrape webpages to make an RSS feed using just regex')
+    parser.add_argument('feed', help='Feed key in settings.py')
+    parser.add_argument('--s3', dest='upload_s3', action='store_true', help='Upload to S3')
+    args = parser.parse_args()
+    options = settings.FEEDS[args.feed]
 
     source_url = options.get('source_url')
     with urllib.request.urlopen(source_url) as response:
@@ -101,4 +118,8 @@ if __name__ == '__main__':
             entries.append(d)
             print_entry(d)
 
-    print(generate_rss(entries, options))
+    rss = generate_rss(entries, options)
+    # if args.debug:
+    #    print(rss)
+    if args.upload_s3:
+        upload_s3(rss, options.get('s3'))
