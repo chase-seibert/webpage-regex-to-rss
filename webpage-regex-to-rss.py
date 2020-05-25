@@ -106,14 +106,8 @@ def upload_s3(xml_data, options):
     )
 
 
-if __name__ == '__main__':
+def process_feed(feed):
 
-    parser = argparse.ArgumentParser(description='Scrape webpages to make an RSS feed using just regex')
-    parser.add_argument('feed', help='Feed key in settings.py')
-    parser.add_argument('--s3', dest='upload_s3', action='store_true', help='Upload to S3')
-    parser.add_argument('--debug', dest='debug', action='store_true')
-    args = parser.parse_args()
-    options = settings.FEEDS[args.feed]
 
     source_url = options.get('source_url')
     with urllib.request.urlopen(source_url) as response:
@@ -136,3 +130,19 @@ if __name__ == '__main__':
     if args.upload_s3:
         upload_s3(rss, options.get('s3'))
         print('Success %s' % options.get('id'))
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='Scrape webpages to make an RSS feed using just regex')
+    parser.add_argument('feed', help='Feed key in settings.py')
+    parser.add_argument('--s3', dest='upload_s3', action='store_true', help='Upload to S3')
+    parser.add_argument('--debug', dest='debug', action='store_true')
+    args = parser.parse_args()
+
+    if args.feed == 'all':
+        for options in settings.FEEDS.values():
+            process_feed(options)
+    else:
+        options = settings.FEEDS[args.feed]
+        process_feed(options)
