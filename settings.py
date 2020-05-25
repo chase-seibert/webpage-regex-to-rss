@@ -7,7 +7,7 @@ FEEDS = {
         'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/bogleheads2.xml',
         'title': 'Bogleheads Personal Finance, topics with over 50 replies',
         'parse': {
-            'entry': lambda x: x.find_all('li', class_='row'),
+            'entry': lambda x: x.find_all('li', class_='row bg1'),
             'title': lambda x: x.find('a', class_='topictitle').text,
             'link': r'./viewtopic.php.*?t=[0-9]+',
             'date': r'» ([A-Za-z]{3} [A-Za-z]{3} [0-9]{1,2}, [0-9]{4} [0-9]{1,2}:[0-9]{2} ..)',
@@ -33,5 +33,16 @@ FEEDS['bogleheads11'].update({
     's3': {
         'bucket': 'rsscombine',
         'object_name': 'bogleheads11.xml',
+    }
+})
+
+FEEDS['bogleheads16'] = FEEDS['bogleheads2'].copy()
+FEEDS['bogleheads16'].update({
+    'source_url': 'https://www.bogleheads.org/forum/viewforum.php?f=16',
+    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/bogleheads16.xml',
+    'title': 'Bogleheads US Investors, topics with over 50 replies',
+    's3': {
+        'bucket': 'rsscombine',
+        'object_name': 'bogleheads16.xml',
     }
 })
