@@ -36,13 +36,24 @@ FEEDS['bogleheads11'].update({
     }
 })
 
-FEEDS['bogleheads16'] = FEEDS['bogleheads2'].copy()
-FEEDS['bogleheads16'].update({
-    'source_url': 'https://www.bogleheads.org/forum/viewforum.php?f=16',
-    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/bogleheads16.xml',
-    'title': 'Bogleheads US Investors, topics with over 50 replies',
+FEEDS['bogleheads1'] = FEEDS['bogleheads2'].copy()
+FEEDS['bogleheads1'].update({
+    'source_url': 'https://www.bogleheads.org/forum/viewforum.php?f=1',
+    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/bogleheads1.xml',
+    'title': 'Bogleheads Personal Investments, topics with over 50 replies',
     's3': {
         'bucket': 'rsscombine',
-        'object_name': 'bogleheads16.xml',
+        'object_name': 'bogleheads1.xml',
+    }
+})
+
+FEEDS['bogleheads10'] = FEEDS['bogleheads2'].copy()
+FEEDS['bogleheads10'].update({
+    'source_url': 'https://www.bogleheads.org/forum/viewforum.php?f=10',
+    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/bogleheads10.xml',
+    'title': 'Bogleheads Investing - Theory, News & General, topics with over 50 replies',
+    's3': {
+        'bucket': 'rsscombine',
+        'object_name': 'bogleheads10.xml',
     }
 })
