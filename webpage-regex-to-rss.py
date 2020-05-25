@@ -17,9 +17,55 @@ import dateutil
 import settings
 
 
+def get_entries(_html, parse_options):
+    # pattern.finditer(_html):
+    selector = parse_options.get('entry')
+    if callable(selector):
+        soup = BeautifulSoup(_html, 'html.parser')
+        return [e.decode(formatter=None) for e in selector(soup)]
+    else:
+        raise NotImplementedError(type(selector))
+
+
+def parse_entry(_html, parse_options):
+    d = {}
+    for field in parse_options.keys():
+        if field == 'entry':
+            # TODO hack
+            continue
+        d[field] = parse_field(_html, parse_options.get(field), field=field)
+    return d
+
+
+def parse_field(_html, selector, field=None):
+    if type(selector) == str:
+        match = re.findall(selector, _html)
+        try:
+            return match[0]
+        except IndexError:
+            return None
+    elif callable(selector):
+        soup = BeautifulSoup(_html, 'html.parser')
+        result = selector(soup)
+        if type(result) == str:
+            return str(result)
+        return result.decode(formatter=None)
+    else:
+        raise NotImplementedError(type(selector))
+
+
 def format_link(base_url, link):
     link = urllib.parse.urljoin(base_url, link)
     return link
+
+
+def format_date(date, timezone=None):
+    if not date:
+        return None
+    date = dateutil.parser.parse(date)
+    if timezone:
+        date = date.replace(tzinfo=pytz.timezone(timezone))
+    return date
 
 
 def generate_rss(entries, options):
@@ -45,45 +91,9 @@ def generate_rss(entries, options):
     return fg.atom_str(pretty=True)
 
 
-def get_entries(_html, parse_options):
-    # pattern.finditer(_html):
-    selector = parse_options.get('entry')
-    if callable(selector):
-        soup = BeautifulSoup(_html, 'html.parser')
-        return [e.decode(formatter=None) for e in selector(soup)]
-    else:
-        raise NotImplementedError(type(selector))
-
-
-def parse_field(_html, selector):
-    if type(selector) == str:
-        match = re.findall(selector, _html)
-        try:
-            return match[0]
-        except IndexError:
-            return None
-    elif callable(selector):
-        soup = BeautifulSoup(_html, 'html.parser')
-        result = selector(soup)
-        if type(result) == str:
-            return str(result)
-        return result.decode(formatter=None)
-    else:
-        raise NotImplementedError(type(selector))
-
-
-def parse_entry(_html, parse_options):
-    d = {}
-    for field in parse_options.keys():
-        if field == 'entry':
-            # TODO hack
-            continue
-        d[field] = parse_field(_html, parse_options.get(field))
-    return d
-
-
 def print_entry(d):
     print('{date} {replies:4} {link} {title}'.format(**d))
+
 
 def upload_s3(xml_data, options):
     s3_client = boto3.client('s3')
@@ -107,16 +117,14 @@ if __name__ == '__main__':
 
     source_url = options.get('source_url')
     with urllib.request.urlopen(source_url) as response:
-        _html = str(response.read())
+        _html = response.read().decode('utf-8')  # TODO: base on charset of doc
         parse_options = options.get('parse')
         exclude = options.get('exclude')
         entries = []
         for entry in get_entries(_html, parse_options):
             d = parse_entry(entry, parse_options)
             d['link'] = format_link(source_url, d['link'])
-            d['date'] = dateutil.parser.parse(d['date'])
-            if options.get('timezone'):
-                d['date'] = d['date'].replace(tzinfo=pytz.timezone(options.get('timezone')))
+            d['date'] = format_date(d['date'], options.get('timezone'))
             if exclude(d):
                 continue
             entries.append(d)

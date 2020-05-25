@@ -10,7 +10,7 @@ FEEDS = {
             'entry': lambda x: x.find_all('li', class_='row'),
             'title': lambda x: x.find('a', class_='topictitle').text,
             'link': r'./viewtopic.php.*?t=[0-9]+',
-            'date': r'topic-poster.*?([A-Za-z]{3} [A-Za-z]{3} [0-9]{1,2}, [0-9]{4} [0-9]{1,2}:[0-9]{2} ..)',
+            'date': r'» ([A-Za-z]{3} [A-Za-z]{3} [0-9]{1,2}, [0-9]{4} [0-9]{1,2}:[0-9]{2} ..)',
             'content': lambda x: '',
             # extra
             'replies': r'Replies: <strong>([0-9]+)'
