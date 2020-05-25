@@ -38,7 +38,7 @@ def generate_rss(entries, options):
         fe.id(entry.get('link'))
         fe.title(entry.get('title'))
         # TODO hack
-        fe.link(href=html.unescape(entry.get('link')))
+        fe.link(href=entry.get('link'))
         fe.published(entry.get('date'))
         # date, content
 
@@ -50,7 +50,7 @@ def get_entries(_html, parse_options):
     selector = parse_options.get('entry')
     if callable(selector):
         soup = BeautifulSoup(_html, 'html.parser')
-        return [str(e) for e in selector(soup)]
+        return [e.decode(formatter=None) for e in selector(soup)]
     else:
         raise NotImplementedError(type(selector))
 
@@ -64,7 +64,10 @@ def parse_field(_html, selector):
             return None
     elif callable(selector):
         soup = BeautifulSoup(_html, 'html.parser')
-        return str(selector(soup))
+        result = selector(soup)
+        if type(result) == str:
+            return str(result)
+        return result.decode(formatter=None)
     else:
         raise NotImplementedError(type(selector))
 
@@ -72,17 +75,15 @@ def parse_field(_html, selector):
 def parse_entry(_html, parse_options):
     d = {}
     for field in parse_options.keys():
+        if field == 'entry':
+            # TODO hack
+            continue
         d[field] = parse_field(_html, parse_options.get(field))
     return d
 
 
 def print_entry(d):
-    # print(d['title'])
-    print(html.unescape(d['link']))
-    # print('\t', d['date'])
-    # print('\t', d['replies'])
-    pass
-
+    print('{date} {replies:4} {link} {title}'.format(**d))
 
 def upload_s3(xml_data, options):
     s3_client = boto3.client('s3')
