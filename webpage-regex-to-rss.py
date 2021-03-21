@@ -110,7 +110,8 @@ def process_feed(feed):
 
 
     source_url = options.get('source_url')
-    with urllib.request.urlopen(source_url) as response:
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    with urllib.request.urlopen(urllib.request.Request(source_url, headers=headers)) as response:
         _html = response.read().decode('utf-8')  # TODO: base on charset of doc
         parse_options = options.get('parse')
         exclude = options.get('exclude')
