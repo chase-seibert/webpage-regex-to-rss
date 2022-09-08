@@ -27,6 +27,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        echo "${{ secrets.AWS_ACCESS_KEY_ID }}"
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
