@@ -1,4 +1,4 @@
-name: Python application
+name: Publish RSS Feeds
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "master" ]
   schedule:
-    - cron: '21 * * * *' # once an hour at minute 21
+    - cron: '21 */4 * * *'
 
 permissions:
   contents: read
