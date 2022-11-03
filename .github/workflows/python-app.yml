@@ -40,3 +40,4 @@ jobs:
         AWS_REGION: us-west-2
       run: |
         ./webpage-regex-to-rss.py all --s3
+    - uses: gautamkrishnar/keepalive-workflow@v1
