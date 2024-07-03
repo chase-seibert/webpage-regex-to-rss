@@ -57,38 +57,3 @@ FEEDS['bogleheads10'].update({
         'object_name': 'bogleheads10.xml',
     }
 })
-
-FEEDS['thelawnforum9'] = FEEDS['bogleheads2'].copy()
-FEEDS['thelawnforum9'].update({
-    'source_url': 'https://thelawnforum.com/viewforum.php?f=9',
-    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/thelawnforum9.xml',
-    'title': 'The Lawn Forum -- Cool Season Lawns, topics with over 15 replies',
-    's3': {
-        'bucket': 'rsscombine',
-        'object_name': 'thelawnforum9.xml',
-    },
-    # exclude anything that doesn't have 50 or more replies
-    'exclude': lambda d: int(d.get('replies') or 0) < 15,
-})
-
-FEEDS['thelawnforum24'] = FEEDS['thelawnforum9'].copy()
-FEEDS['thelawnforum24'].update({
-    'source_url': 'https://thelawnforum.com/viewforum.php?f=24',
-    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/thelawnforum24.xml',
-    'title': 'The Lawn Forum -- Nutrients & Soil Fertility, topics with over 15 replies',
-    's3': {
-        'bucket': 'rsscombine',
-        'object_name': 'thelawnforum24.xml',
-    }
-})
-
-FEEDS['thelawnforum5'] = FEEDS['thelawnforum9'].copy()
-FEEDS['thelawnforum5'].update({
-    'source_url': 'https://thelawnforum.com/viewforum.php?f=5',
-    'id': 'https://s3-us-west-2.amazonaws.com/rsscombine/thelawnforum5  .xml',
-    'title': 'The Lawn Forum -- Irrigation, topics with over 15 replies',
-    's3': {
-        'bucket': 'rsscombine',
-        'object_name': 'thelawnforum5.xml',
-    }
-})
