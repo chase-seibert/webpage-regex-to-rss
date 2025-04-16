@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
 import urllib.request
 import re
 import urllib
-import html.parser
-import io
 import pytz
+import http.cookiejar
+import time
+import random
 
 from bs4 import BeautifulSoup
 import boto3
@@ -106,24 +106,55 @@ def upload_s3(xml_data, options):
     )
 
 
+def resilient_request(source_url, retries=3):
+    # Set up headers to mimic a modern browser
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1"
+    }
+
+    # Use a cookie jar to maintain session state
+    cookie_jar = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(cookie_jar),
+        urllib.request.HTTPRedirectHandler()
+    )
+    urllib.request.install_opener(opener)
+
+    for attempt in range(retries):
+        try:
+            return urllib.request.urlopen(urllib.request.Request(source_url, headers=headers), timeout=10)
+        except urllib.error.HTTPError as e:
+            if e.code == 403:
+                wait = random.uniform(2, 6)
+                print(f"403 Forbidden. Retrying in {wait:.2f} seconds... (attempt {attempt+1}/{retries})")
+                time.sleep(wait)
+            else:
+                raise
+
+    raise Exception(f"Failed to fetch {url} after {retries} retries.")
+
+
 def process_feed(feed):
 
-
     source_url = options.get('source_url')
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    with urllib.request.urlopen(urllib.request.Request(source_url, headers=headers)) as response:
-        _html = response.read().decode('utf-8')  # TODO: base on charset of doc
-        parse_options = options.get('parse')
-        exclude = options.get('exclude')
-        entries = []
-        for entry in get_entries(_html, parse_options):
-            d = parse_entry(entry, parse_options)
-            d['link'] = format_link(source_url, d['link'])
-            d['date'] = format_date(d['date'], options.get('timezone'))
-            if exclude(d):
-                continue
-            entries.append(d)
-            print_entry(d)
+    response = resilient_request(source_url)
+    _html = response.read().decode('utf-8')  # TODO: base on charset of doc
+    parse_options = options.get('parse')
+    exclude = options.get('exclude')
+    entries = []
+    for entry in get_entries(_html, parse_options):
+        d = parse_entry(entry, parse_options)
+        d['link'] = format_link(source_url, d['link'])
+        d['date'] = format_date(d['date'], options.get('timezone'))
+        if exclude(d):
+            continue
+        entries.append(d)
+        print_entry(d)
 
     rss = generate_rss(entries, options)
     if args.debug:
