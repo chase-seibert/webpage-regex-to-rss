@@ -8,6 +8,7 @@ import pytz
 import http.cookiejar
 import time
 import random
+import cloudscraper
 
 from bs4 import BeautifulSoup
 import boto3
@@ -106,44 +107,33 @@ def upload_s3(xml_data, options):
     )
 
 
-def resilient_request(source_url, retries=3):
-    # Set up headers to mimic a modern browser
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                      "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1"
-    }
+def get_scraper():
+    return cloudscraper.create_scraper(browser={
+        "browser": "chrome",
+        "platform": "windows",
+    })
 
-    # Use a cookie jar to maintain session state
-    cookie_jar = http.cookiejar.CookieJar()
-    opener = urllib.request.build_opener(
-        urllib.request.HTTPCookieProcessor(cookie_jar),
-        urllib.request.HTTPRedirectHandler()
-    )
-    urllib.request.install_opener(opener)
 
+def robust_get(url, retries=5, backoff=2):
+    scraper = get_scraper()
     for attempt in range(retries):
         try:
-            return urllib.request.urlopen(urllib.request.Request(source_url, headers=headers), timeout=10)
-        except urllib.error.HTTPError as e:
-            if e.code == 403:
-                wait = random.uniform(2, 6)
-                print(f"403 Forbidden. Retrying in {wait:.2f} seconds... (attempt {attempt+1}/{retries})")
-                time.sleep(wait)
+            response = scraper.get(url, timeout=10)
+            if response.status_code == 200:
+                return response.text
             else:
-                raise
-
-    raise Exception(f"Failed to fetch {source_url} after {retries} retries.")
+                print(f"[{response.status_code}] on attempt {attempt + 1}")
+        except Exception as ex:
+            print(f"[Error] {ex} on attempt {attempt + 1}")
+        time.sleep(backoff * (attempt + 1))
+    raise Exception("Failed to retrieve URL after retries.")
 
 
 def process_feed(feed):
 
     source_url = options.get('source_url')
-    response = resilient_request(source_url)
-    _html = response.read().decode('utf-8')  # TODO: base on charset of doc
+    _html = robust_get(source_url)
+    # _html = response.read().decode('utf-8')  # TODO: base on charset of doc
     parse_options = options.get('parse')
     exclude = options.get('exclude')
     entries = []
