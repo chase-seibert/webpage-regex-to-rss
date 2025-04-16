@@ -136,7 +136,7 @@ def resilient_request(source_url, retries=3):
             else:
                 raise
 
-    raise Exception(f"Failed to fetch {url} after {retries} retries.")
+    raise Exception(f"Failed to fetch {source_url} after {retries} retries.")
 
 
 def process_feed(feed):
