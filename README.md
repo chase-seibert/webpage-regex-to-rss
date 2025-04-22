@@ -8,3 +8,10 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ./webpage-regex-to-rss.py bogleheads2 --s3
 ```
+
+## Docker 
+
+```bash
+docker build -t webpage-regex-to-rss .
+docker run --rm webpage-regex-to-rss
+```
