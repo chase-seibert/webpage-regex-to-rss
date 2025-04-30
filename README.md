@@ -3,15 +3,14 @@
 Scrape webpages to make an RSS feed using just regex
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-./webpage-regex-to-rss.py bogleheads2 --s3
+make install
+make run 
 ```
 
-## Docker 
+You can upload to S3. To set credentials, create a `.env` file in the format: 
 
 ```bash
-docker build -t webpage-regex-to-rss .
-docker run --rm webpage-regex-to-rss
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=us-west-2
 ```
